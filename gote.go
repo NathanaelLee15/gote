@@ -44,7 +44,7 @@ func RunProgram(project string, does_auto_close bool) {
 }
 
 func SaveFile(path, content string) {
-	log.Printf("Saving (%s)...\n", path)
+	log.Printf("Saving %s\n", path)
 
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
@@ -78,12 +78,12 @@ func main() {
 	// vsCodeVarColor := tcell.NewHexColor(0xea999c)
 	// vsCodeStrColor := tcell.NewHexColor(0x9dc583)
 
-	f, err := os.OpenFile("./demo/testlogfile", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	log_handle, err := os.OpenFile("./demo/testlogfile.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
-	defer f.Close()
-	log.SetOutput(f)
+	defer log_handle.Close()
+	log.SetOutput(log_handle)
 
 	current_project := "./demo"
 	current_file := current_project + "/main.go"
@@ -235,6 +235,10 @@ func main() {
 			LoadFileIntoTextArea(current_file, textArea)
 			// close explorer
 			pages.SwitchToPage("main")
+
+			tvOutput.ScrollToBeginning()
+			tvOutput.SetText(fmt.Sprintf("[purple]Switching to %s\n", current_file))
+
 			return
 		}
 
@@ -287,6 +291,8 @@ func main() {
 			return nil
 		} else if event.Key() == tcell.KeyCtrlS {
 			SaveFile(current_file, textArea.GetText())
+			tvOutput.SetText(fmt.Sprintf("%s[green]Saved %s\n", tvOutput.GetText(false), current_file))
+			tvOutput.ScrollToEnd()
 		} else if event.Key() == tcell.KeyCtrlR {
 			RunProgram(current_project, true)
 		}
