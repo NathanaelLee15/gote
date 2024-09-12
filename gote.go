@@ -52,7 +52,7 @@ func SaveFile(path, content string) {
 	log.Printf("Wrote (%d) bytes\n", c)
 }
 
-func LoadFileIntoTextView(path string, textArea *tview.TextArea) {
+func LoadFileIntoTextArea(path string, textArea *tview.TextArea) {
 	arr, err := os.ReadFile(path)
 	if err != nil {
 		log.Printf("Failed to load file content: %s\n", path)
@@ -66,6 +66,12 @@ func LoadFileIntoTextView(path string, textArea *tview.TextArea) {
 }
 
 func main() {
+	vsCodeBgColor := tcell.NewHexColor(0x303446)
+	// vsCodeKeywordColor := tcell.NewHexColor(0xca9ee6)
+	// vsCodeIdentiferColor := tcell.NewHexColor(0x87a4e5)
+	// vsCodeVarColor := tcell.NewHexColor(0xea999c)
+	// vsCodeStrColor := tcell.NewHexColor(0x9dc583)
+
 	f, err := os.OpenFile("./demo/testlogfile", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
@@ -78,18 +84,24 @@ func main() {
 
 	app := tview.NewApplication()
 
+	editorBgColor := vsCodeBgColor
 	textArea := tview.NewTextArea().
-		SetWrap(false).
+		SetWrap(true).
 		SetPlaceholder("Enter text here...")
 	textArea.SetTitle("[yellow] " + current_file + " ").SetBorder(true)
+	textArea.SetBackgroundColor(editorBgColor)
+	textArea.SetTextStyle(textArea.GetTextStyle().Background(editorBgColor))
 
-	LoadFileIntoTextView(current_file, textArea)
+	LoadFileIntoTextArea(current_file, textArea)
 
 	helpInfo := tview.NewTextView().
-		SetText(" Press F1 for help, press Ctrl-C to exit")
+		SetText(" F1 help, Ctrl-C exit, Ctrl-S save")
+	helpInfo.SetBackgroundColor(vsCodeBgColor)
 	position := tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignRight)
+	position.SetBackgroundColor(vsCodeBgColor)
+
 	pages := tview.NewPages()
 
 	updateInfos := func() {
@@ -104,11 +116,45 @@ func main() {
 	textArea.SetMovedFunc(updateInfos)
 	updateInfos()
 
+	tvSuggestions := tview.NewTextView().
+		SetDynamicColors(true).
+		SetText(`[blue]At Cursor
+		[blue]From AI`)
+	tvSuggestions.SetBackgroundColor(vsCodeBgColor)
+
+	frSuggestions := tview.NewFrame(tvSuggestions).
+		SetBorders(1, 1, 0, 0, 2, 2)
+	frSuggestions.SetBorder(true).
+		SetTitle(" Suggestions ").
+		SetTitleColor(tcell.ColorLightGray).
+		SetBorderColor(tcell.ColorBisque)
+	frSuggestions.SetBackgroundColor(vsCodeBgColor)
+
+	tvOutput := tview.NewTextView().
+		SetDynamicColors(true).
+		SetText(`[blue]log 1
+[blue]log 2`)
+	tvOutput.SetBackgroundColor(vsCodeBgColor)
+
+	frOutput := tview.NewFrame(tvOutput).
+		SetBorders(1, 1, 0, 0, 2, 2)
+	frOutput.SetBorder(true).
+		SetTitle(" Output ").
+		SetTitleColor(tcell.ColorLightGray).
+		SetBorderColor(tcell.ColorBisque)
+	frOutput.SetBackgroundColor(vsCodeBgColor)
+
+	ROWS, COLS := 12, 6
+
+	editorRows := 8
+
 	mainView := tview.NewGrid().
-		SetRows(0, 1).
-		AddItem(textArea, 0, 0, 1, 2, 0, 0, true).
-		AddItem(helpInfo, 1, 0, 1, 1, 0, 0, false).
-		AddItem(position, 1, 1, 1, 1, 0, 0, false)
+		SetRows(0, 12).
+		AddItem(textArea, 0, 0, editorRows, COLS, 0, 0, true).
+		AddItem(helpInfo, ROWS, 0, 1, COLS-2, 0, 0, false).
+		AddItem(position, ROWS, COLS-2, 1, 2, 0, 0, false).
+		AddItem(frSuggestions, editorRows, 0, 4, 3, 0, 0, false).
+		AddItem(frOutput, editorRows, 3, 4, 3, 0, 0, false)
 
 	help1, help2, help3 := CreateHelpItems()
 
