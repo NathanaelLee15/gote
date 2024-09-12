@@ -13,6 +13,8 @@ import (
 )
 
 func RunProgram(project string, does_auto_close bool) {
+	log.Println("Running Program...")
+
 	file := "main"
 	str_cmd := fmt.Sprintf("pushd %s && go build -o ./%s && popd", project, file)
 	cmd := exec.Command("bash", "-c", str_cmd)
@@ -42,6 +44,8 @@ func RunProgram(project string, does_auto_close bool) {
 }
 
 func SaveFile(path, content string) {
+	log.Printf("Saving (%s)...\n", path)
+
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Printf("Failed to open file for saving: %s\n", path)
@@ -221,9 +225,16 @@ func main() {
 			log.Printf("explorer: opening file: ./%s\n", reference.(string))
 
 			// save current file
+			SaveFile(current_file, textArea.GetText())
+			// change current file
+			current_file = fmt.Sprintf("./%s", reference.(string))
 			// set editor title new file's path/name
+			new_title := fmt.Sprintf("[yellow] %s ", current_file)
+			textArea.SetTitle(new_title)
 			// load new file's contents
+			LoadFileIntoTextArea(current_file, textArea)
 			// close explorer
+			pages.SwitchToPage("main")
 			return
 		}
 
@@ -275,10 +286,8 @@ func main() {
 			}
 			return nil
 		} else if event.Key() == tcell.KeyCtrlS {
-			log.Println("Saving...")
 			SaveFile(current_file, textArea.GetText())
 		} else if event.Key() == tcell.KeyCtrlR {
-			log.Println("Running Program...")
 			RunProgram(current_project, true)
 		}
 		return event
