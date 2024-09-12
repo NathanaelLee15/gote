@@ -4,13 +4,39 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
+	"github.com/nathanaellee15/tview"
 )
 
-func RunProgram() {
+func RunProgram(project string, does_auto_close bool) {
+	file := "main"
+	str_cmd := fmt.Sprintf("pushd %s && go build -o ./%s && popd", project, file)
+	cmd := exec.Command("bash", "-c", str_cmd)
+	err := cmd.Run()
+	if err != nil {
+		log.Printf("Go Build Failed: %s --- %s\n", project, err.Error())
+		return
+	}
+	log.Printf("Go Build Success: %s", cmd.String())
 
+	eop := "&& "
+	switch does_auto_close {
+	case true:
+		seconds := 3
+		eop += fmt.Sprintf("sleep %d", seconds)
+	case false:
+		eop += "read -p 'press a key to exit...'"
+	}
+	str_cmd = fmt.Sprintf("gnome-terminal --geometry=136x43 -- bash -c \"%s/%s %s\"", project, file, eop)
+	cmd = exec.Command("bash", "-c", str_cmd)
+	err = cmd.Run()
+	if err != nil {
+		log.Printf("Failed to run program: %s --- %s\n", project+"/main", err.Error())
+		return
+	}
+	log.Printf("Successfully ran program: %s", cmd.String())
 }
 
 func SaveFile(path, content string) {
@@ -31,7 +57,11 @@ func LoadFileIntoTextView(path string, textArea *tview.TextArea) {
 	if err != nil {
 		log.Printf("Failed to load file content: %s\n", path)
 	} else {
-		textArea.SetText(string(arr), false)
+		sty := tcell.Style{}.Underline(true).Background(tcell.ColorBlue)
+		textArea.SetSelectedStyle(sty)
+
+		text := string(arr)
+		textArea.SetText(text, false)
 	}
 }
 
@@ -43,14 +73,15 @@ func main() {
 	defer f.Close()
 	log.SetOutput(f)
 
-	current_file := "./demo/demo.go"
+	current_project := "./demo"
+	current_file := current_project + "/main.go"
 
 	app := tview.NewApplication()
 
 	textArea := tview.NewTextArea().
 		SetWrap(false).
 		SetPlaceholder("Enter text here...")
-	textArea.SetTitle(current_file).SetBorder(true)
+	textArea.SetTitle("[yellow] " + current_file + " ").SetBorder(true)
 
 	LoadFileIntoTextView(current_file, textArea)
 
@@ -116,6 +147,9 @@ func main() {
 		} else if event.Key() == tcell.KeyCtrlS {
 			log.Println("Saving...")
 			SaveFile(current_file, textArea.GetText())
+		} else if event.Key() == tcell.KeyCtrlR {
+			log.Println("Running Program...")
+			RunProgram(current_project, true)
 		}
 		return event
 	})
