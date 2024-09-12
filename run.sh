@@ -1,3 +1,3 @@
 #!/bin/bash
 
-gnome-terminal --geometry=136x43 -- ./gote
+gnome-terminal --geometry=136x43 -- gote
