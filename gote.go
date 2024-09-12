@@ -57,7 +57,7 @@ func LoadFileIntoTextView(path string, textArea *tview.TextArea) {
 	if err != nil {
 		log.Printf("Failed to load file content: %s\n", path)
 	} else {
-		sty := tcell.Style{}.Underline(true).Background(tcell.ColorBlue)
+		sty := tcell.Style{}.Background(tcell.ColorMediumBlue)
 		textArea.SetSelectedStyle(sty)
 
 		text := string(arr)
