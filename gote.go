@@ -118,8 +118,7 @@ func main() {
 
 	tvSuggestions := tview.NewTextView().
 		SetDynamicColors(true).
-		SetText(`[blue]At Cursor
-		[blue]From AI`)
+		SetText("[blue]At Cursor\n[blue]From AI")
 	tvSuggestions.SetBackgroundColor(vsCodeBgColor)
 
 	frSuggestions := tview.NewFrame(tvSuggestions).
@@ -132,8 +131,7 @@ func main() {
 
 	tvOutput := tview.NewTextView().
 		SetDynamicColors(true).
-		SetText(`[blue]log 1
-[blue]log 2`)
+		SetText("[blue]log 1\n[blue]log 2")
 	tvOutput.SetBackgroundColor(vsCodeBgColor)
 
 	frOutput := tview.NewFrame(tvOutput).
