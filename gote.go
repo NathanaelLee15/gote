@@ -12,94 +12,114 @@ import (
 	"github.com/nathanaellee15/tview"
 )
 
-func RunProgram(project string, does_auto_close bool) {
-	log.Println("Running Program...")
-
-	file := "main"
-	str_cmd := fmt.Sprintf("pushd %s && go build -o ./%s && popd", project, file)
-	cmd := exec.Command("bash", "-c", str_cmd)
-	err := cmd.Run()
-	if err != nil {
-		log.Printf("Go Build Failed: %s --- %s\n", project, err.Error())
-		return
-	}
-	log.Printf("Go Build Success: %s", cmd.String())
-
-	eop := "&& "
-	switch does_auto_close {
-	case true:
-		seconds := 3
-		eop += fmt.Sprintf("sleep %d", seconds)
-	case false:
-		eop += "read -p 'press a key to exit...'"
-	}
-	str_cmd = fmt.Sprintf("gnome-terminal --geometry=136x43 -- bash -c \"%s/%s %s\"", project, file, eop)
-	cmd = exec.Command("bash", "-c", str_cmd)
-	err = cmd.Run()
-	if err != nil {
-		log.Printf("Failed to run program: %s --- %s\n", project+"/main", err.Error())
-		return
-	}
-	log.Printf("Successfully ran program: %s", cmd.String())
-}
-
-func SaveFile(path, content string) {
-	log.Printf("Saving %s\n", path)
-
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		log.Printf("Failed to open file for saving: %s\n", path)
-		return
-	}
-	c, err := f.WriteString(content)
-	if err != nil {
-		log.Println("Failed to write file contents...")
-	}
-	log.Printf("Wrote (%d) bytes\n", c)
-}
-
-func LoadFileIntoTextArea(path string, textArea *tview.TextArea) {
-	arr, err := os.ReadFile(path)
-	if err != nil {
-		log.Printf("Failed to load file content: %s\n", path)
-	} else {
-		sty := tcell.Style{}.Background(tcell.ColorMediumBlue)
-		textArea.SetSelectedStyle(sty)
-
-		text := string(arr)
-		textArea.SetText(text, false)
-	}
-}
-
 func main() {
-	vsCodeBgColor := tcell.NewHexColor(0x303446)
-	// vsCodeKeywordColor := tcell.NewHexColor(0xca9ee6)
-	// vsCodeIdentiferColor := tcell.NewHexColor(0x87a4e5)
-	// vsCodeVarColor := tcell.NewHexColor(0xea999c)
-	// vsCodeStrColor := tcell.NewHexColor(0x9dc583)
-
+	/// setup logger
 	log_handle, err := os.OpenFile("./demo/testlogfile.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
 	defer log_handle.Close()
 	log.SetOutput(log_handle)
+	///
 
+	/// Suggestions Section
+	tvSuggestions := tview.NewTextView().
+		SetDynamicColors(true)
+
+	tvSuggestions.SetDisabled(false)
+	tvSuggestions.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		return event
+	})
+	tvSuggestions.SetBackgroundColor(vsCodeBgColor)
+
+	frSuggestions := tview.NewFrame(tvSuggestions).
+		SetBorders(1, 1, 0, 0, 2, 2)
+	frSuggestions.SetBorder(true).
+		SetTitle(" Suggestions ").
+		SetTitleColor(tcell.ColorLightGray).
+		SetBorderColor(tcell.ColorBisque)
+	frSuggestions.SetBackgroundColor(vsCodeBgColor)
+	///
+
+	/// Output Section
+	tvOutput := tview.NewTextView().
+		SetDynamicColors(true)
+	tvOutput.SetBackgroundColor(vsCodeBgColor)
+
+	frOutput := tview.NewFrame(tvOutput).
+		SetBorders(1, 1, 0, 0, 2, 2)
+	frOutput.SetBorder(true).
+		SetTitle(" Output ").
+		SetTitleColor(tcell.ColorLightGray).
+		SetBorderColor(tcell.ColorBisque)
+	frOutput.SetBackgroundColor(vsCodeBgColor)
+	///
+
+	/// Suggestions & Output Helpers
+
+	SetSuggestionsText := func(text string) {
+		tvSuggestions.ScrollToBeginning()
+		tvSuggestions.SetText(text)
+	}
+	// PushSuggestionsText := func(text string) {
+	// 	tvSuggestions.SetText(fmt.Sprintf("%s%s\n", tvSuggestions.GetText(false), text))
+	// 	tvSuggestions.ScrollToEnd()
+	// }
+
+	SetOutputText := func(text string) {
+		tvOutput.ScrollToBeginning()
+		tvOutput.SetText(text)
+	}
+	PushOutputText := func(text string) {
+		tvOutput.SetText(fmt.Sprintf("%s%s\n", tvOutput.GetText(false), text))
+		tvOutput.ScrollToEnd()
+	}
+	///
+
+	/// Project Path and Initial file target
 	current_project := "./demo"
 	current_file := current_project + "/main.go"
 
-	app := tview.NewApplication()
-
+	/// Editor Section
 	editorBgColor := vsCodeBgColor
 	textArea := tview.NewTextArea().
 		SetWrap(true).
-		SetPlaceholder("Enter text here...")
+		SetPlaceholder("Write some code or whatever!")
 	textArea.SetTitle("[yellow] " + current_file + " ").SetBorder(true)
 	textArea.SetBackgroundColor(editorBgColor)
 	textArea.SetTextStyle(textArea.GetTextStyle().Background(editorBgColor))
+	///
 
-	LoadFileIntoTextArea(current_file, textArea)
+	/// Highlighter Callback
+	testFlag := false
+	GoInsightCb := func(screen tcell.Screen, x int, y int, width int, height int) (int, int, int, int) {
+		if testFlag {
+			testFlag = false
+			log.Println("Test Event!")
+			if textArea.HasSelection() {
+				text, start, end := textArea.GetSelection()
+				if start != end {
+					log.Printf("Selected Text: %s\n", text)
+					parsed_text := HighlightParseText(text, "go")
+					SetSuggestionsText("[:::https://github.com/nathanaellee15/tview]Hyperlinks[:::-]\n[green]Info for:[blue]\n" + parsed_text)
+					screen.Beep()
+					tvSuggestions.Draw(screen)
+				}
+			}
+		}
+		// +1 and -2, for padding because of borders
+		return x + 1, y + 1, width - 2, height - 2
+	}
+	///
 
+	/// Setup App
+	app := tview.NewApplication()
+	pages := tview.NewPages()
+
+	LoadFileIntoTextArea(current_file, textArea, GoInsightCb)
+	///
+
+	/// Simple Help Info & Cursor Info
 	helpInfo := tview.NewTextView().
 		SetText(" F1 help, Ctrl-C exit, Ctrl-S save")
 	helpInfo.SetBackgroundColor(vsCodeBgColor)
@@ -107,8 +127,6 @@ func main() {
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignRight)
 	position.SetBackgroundColor(vsCodeBgColor)
-
-	pages := tview.NewPages()
 
 	updateInfos := func() {
 		fromRow, fromColumn, toRow, toColumn := textArea.GetCursor()
@@ -121,37 +139,14 @@ func main() {
 
 	textArea.SetMovedFunc(updateInfos)
 	updateInfos()
+	///
 
-	tvSuggestions := tview.NewTextView().
-		SetDynamicColors(true).
-		SetText("[blue]At Cursor\n[blue]From AI")
-	tvSuggestions.SetBackgroundColor(vsCodeBgColor)
-
-	frSuggestions := tview.NewFrame(tvSuggestions).
-		SetBorders(1, 1, 0, 0, 2, 2)
-	frSuggestions.SetBorder(true).
-		SetTitle(" Suggestions ").
-		SetTitleColor(tcell.ColorLightGray).
-		SetBorderColor(tcell.ColorBisque)
-	frSuggestions.SetBackgroundColor(vsCodeBgColor)
-
-	tvOutput := tview.NewTextView().
-		SetDynamicColors(true).
-		SetText("[blue]log 1\n[blue]log 2")
-	tvOutput.SetBackgroundColor(vsCodeBgColor)
-
-	frOutput := tview.NewFrame(tvOutput).
-		SetBorders(1, 1, 0, 0, 2, 2)
-	frOutput.SetBorder(true).
-		SetTitle(" Output ").
-		SetTitleColor(tcell.ColorLightGray).
-		SetBorderColor(tcell.ColorBisque)
-	frOutput.SetBackgroundColor(vsCodeBgColor)
-
+	/// Editor Config
 	ROWS, COLS := 12, 6
-
 	editorRows := 8
+	///
 
+	/// Layout Editor
 	mainView := tview.NewGrid().
 		SetRows(0, 12).
 		AddItem(textArea, 0, 0, editorRows, COLS, 0, 0, true).
@@ -159,13 +154,19 @@ func main() {
 		AddItem(position, ROWS, COLS-2, 1, 2, 0, 0, false).
 		AddItem(frSuggestions, editorRows, 0, 4, 3, 0, 0, false).
 		AddItem(frOutput, editorRows, 3, 4, 3, 0, 0, false)
+	///
 
+	/// Load Help Page and Items
 	help1, help2, help3 := CreateHelpItems()
+	help1.SetBackgroundColor(vsCodeBgColor)
+	help2.SetBackgroundColor(vsCodeBgColor)
+	help3.SetBackgroundColor(vsCodeBgColor)
 
 	help := tview.NewFrame(help1).
 		SetBorders(1, 1, 0, 0, 2, 2)
+	help.SetBackgroundColor(vsCodeBgColor)
 	help.SetBorder(true).
-		SetTitle("Help").
+		SetTitle(" Help ").
 		SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 			if event.Key() == tcell.KeyEscape {
 				pages.SwitchToPage("main")
@@ -183,13 +184,16 @@ func main() {
 			}
 			return event
 		})
+	///
 
+	/// Setup Explorer
 	rootDir := "."
 	root := tview.NewTreeNode(rootDir).
 		SetColor(tcell.ColorRed)
 	tree := tview.NewTreeView().
 		SetRoot(root).
 		SetCurrentNode(root)
+	tree.SetBackgroundColor(vsCodeBgColor)
 
 	// A helper function which adds the files and directories of the given path
 	// to the given target node.
@@ -232,13 +236,11 @@ func main() {
 			new_title := fmt.Sprintf("[yellow] %s ", current_file)
 			textArea.SetTitle(new_title)
 			// load new file's contents
-			LoadFileIntoTextArea(current_file, textArea)
+			LoadFileIntoTextArea(current_file, textArea, GoInsightCb)
 			// close explorer
 			pages.SwitchToPage("main")
 
-			tvOutput.ScrollToBeginning()
-			tvOutput.SetText(fmt.Sprintf("[purple]Switching to %s\n", current_file))
-
+			SetOutputText(fmt.Sprintf("[purple]Switching to %s\n", current_file))
 			return
 		}
 
@@ -252,9 +254,12 @@ func main() {
 			node.SetExpanded(!node.IsExpanded())
 		}
 	})
+	///
 
+	/// Explorer Section
 	explorer := tview.NewFrame(tree).
 		SetBorders(1, 1, 0, 0, 2, 2)
+	explorer.SetBackgroundColor(vsCodeBgColor)
 	explorer.SetBorder(true).
 		SetTitle(" Explorer ").
 		SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -262,11 +267,29 @@ func main() {
 				pages.SwitchToPage("main")
 				return nil
 			} else if event.Key() == tcell.KeyEnter {
+				// TODO: get cmd_str from an inputfield
+				cmd_str := "echo 'hello'"
+
+				log.Printf("Executing CMD: %s\n", cmd_str)
+				cmd := exec.Command("bash", "-c", cmd_str)
+				output, err := cmd.Output()
+				var output_str string
+				if err != nil {
+					output_str = err.Error()
+					log.Printf("Error running cmd: %s\n", output_str)
+				} else {
+					output_str = string(output)
+					log.Printf("StdOut from cmd: %s\n", output_str)
+				}
+				PushOutputText(output_str)
+
 				return nil
 			}
 			return event
 		})
+	///
 
+	/// Attach Pages
 	pages.AddAndSwitchToPage("main", mainView, true).
 		AddPage("help", tview.NewGrid().
 			SetColumns(0, 64, 0).
@@ -276,10 +299,16 @@ func main() {
 			SetColumns(0, 64, 0).
 			SetRows(0, 22, 0).
 			AddItem(explorer, 1, 1, 1, 1, 0, 0, true), true, false)
+	///
 
+	/// Handle Key Events
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyF1 {
 			pages.ShowPage("help") //TODO: Check when clicking outside help window with the mouse. Then clicking help again.
+			return nil
+		} else if event.Key() == tcell.KeyCtrlP {
+			testFlag = true
+
 			return nil
 		} else if event.Key() == tcell.KeyCtrlSpace {
 			name, _ := pages.GetFrontPage()
@@ -291,14 +320,15 @@ func main() {
 			return nil
 		} else if event.Key() == tcell.KeyCtrlS {
 			SaveFile(current_file, textArea.GetText())
-			tvOutput.SetText(fmt.Sprintf("%s[green]Saved %s\n", tvOutput.GetText(false), current_file))
-			tvOutput.ScrollToEnd()
+			PushOutputText(fmt.Sprintf("[green]Saved %s", current_file))
 		} else if event.Key() == tcell.KeyCtrlR {
 			RunProgram(current_project, true)
 		}
 		return event
 	})
+	///
 
+	/// Launch
 	if err := app.SetRoot(pages, true).EnableMouse(true).EnablePaste(true).Run(); err != nil {
 		panic(err)
 	}
