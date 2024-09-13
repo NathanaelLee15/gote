@@ -7,7 +7,7 @@ import (
 func CreateHelpItems() (*tview.TextView, *tview.TextView, *tview.TextView) {
 	help1 := tview.NewTextView().
 		SetDynamicColors(true).
-		SetText(`[green]Navigation
+		SetText(`[green]Navigation[white]  ---  [bu:::https://github.com/nathanaellee15/tview]github repo[:::-]
 
 [yellow]Left arrow[white]: Move left.
 [yellow]Right arrow[white]: Move right.
