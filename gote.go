@@ -323,6 +323,9 @@ func main() {
 			PushOutputText(fmt.Sprintf("[green]Saved %s", current_file))
 		} else if event.Key() == tcell.KeyCtrlR {
 			RunProgram(current_project, true)
+		} else if event.Key() == tcell.KeyCtrlC {
+			log.Println("Saving On Exit...")
+			SaveFile(current_file, textArea.GetText())
 		}
 		return event
 	})
