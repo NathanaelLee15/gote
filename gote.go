@@ -14,7 +14,7 @@ import (
 
 func main() {
 	/// setup logger
-	log_handle, err := os.OpenFile("./testlogfile.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	log_handle, err := os.OpenFile("./logs.md", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
@@ -26,10 +26,6 @@ func main() {
 	tvSuggestions := tview.NewTextView().
 		SetDynamicColors(true)
 
-	tvSuggestions.SetDisabled(false)
-	tvSuggestions.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		return event
-	})
 	tvSuggestions.SetBackgroundColor(vsCodeBgColor)
 
 	frSuggestions := tview.NewFrame(tvSuggestions).
