@@ -4,7 +4,7 @@ go 1.23.1
 
 require (
 	github.com/gdamore/tcell/v2 v2.7.1
-	github.com/nathanaellee15/tview v0.0.0-20240912161516-28a26430af2d
+	github.com/nathanaellee15/tview v0.0.0-20240914060401-1eae6545c456
 )
 
 require (

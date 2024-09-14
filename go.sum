@@ -6,10 +6,8 @@ github.com/lucasb-eyer/go-colorful v1.2.0 h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69
 github.com/lucasb-eyer/go-colorful v1.2.0/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
 github.com/mattn/go-runewidth v0.0.15 h1:UNAjwbU9l54TA3KzvqLGxwWjHmMgBUVhBiTjelZgg3U=
 github.com/mattn/go-runewidth v0.0.15/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
-github.com/nathanaellee15/tview v0.0.0-20240912050947-05760ed622b5 h1:aavWnDuisn7jU7rnVrME2oV/q1pse3vqK7bKYh6h7u4=
-github.com/nathanaellee15/tview v0.0.0-20240912050947-05760ed622b5/go.mod h1:LEH6BSNuf2Fe/KMAYtbMQSdANTjY3REcEbUIIjallYs=
-github.com/nathanaellee15/tview v0.0.0-20240912161516-28a26430af2d h1:WSHr4HJXwVKs4V7Mz222s1bdcOwJCiE9uhS31+8FSsU=
-github.com/nathanaellee15/tview v0.0.0-20240912161516-28a26430af2d/go.mod h1:LEH6BSNuf2Fe/KMAYtbMQSdANTjY3REcEbUIIjallYs=
+github.com/nathanaellee15/tview v0.0.0-20240914060401-1eae6545c456 h1:4lO7DMdskb1W/A/Yaz00uAU8SJGEV+/0MiCQVggRXJs=
+github.com/nathanaellee15/tview v0.0.0-20240914060401-1eae6545c456/go.mod h1:LEH6BSNuf2Fe/KMAYtbMQSdANTjY3REcEbUIIjallYs=
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/rivo/uniseg v0.4.3/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
