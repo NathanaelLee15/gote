@@ -97,7 +97,7 @@ func main() {
 				if start != end {
 					log.Printf("Selected Text: %s\n", text)
 					parsed_text := HighlightParseText(text, "go")
-					SetSuggestionsText("[:::https://github.com/nathanaellee15/tview]Hyperlinks[:::-]\n[green]Info for:[blue]\n" + parsed_text)
+					SetSuggestionsText("[:::https://github.com/nathanaellee15/tview]Hyperlinks[:::-]\n[green]Info for:[-]\n" + parsed_text)
 					screen.Beep()
 					tvSuggestions.Draw(screen)
 				}
