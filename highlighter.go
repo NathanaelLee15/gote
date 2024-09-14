@@ -12,7 +12,7 @@ var vsCodeBgColor = tcell.NewHexColor(0x303446)
 var vsCodeKeywordColor = tcell.NewHexColor(0xca9ee6)
 var vsCodeIdentiferColor = tcell.NewHexColor(0x87a4e5)
 var vsCodeSymbolColor = tcell.ColorYellow // TODO: get custom color
-// var vsCodeVarColor = tcell.NewHexColor(0xea999c)
+var vsCodeVarColor = tcell.NewHexColor(0xea999c)
 var vsCodeStrColor = tcell.NewHexColor(0x9dc583)
 
 type HighlighterMap map[string]string
@@ -25,6 +25,18 @@ var highlighter_map = map[string]HighlighterMap{
 		"module":  vsCodeKeywordColor.CSS(),
 		"import":  vsCodeIdentiferColor.CSS(),
 		"main":    vsCodeIdentiferColor.CSS(),
+		"var":     vsCodeKeywordColor.CSS(),
+		"if":      vsCodeKeywordColor.CSS(),
+		"else":    vsCodeKeywordColor.CSS(),
+		"for":     vsCodeKeywordColor.CSS(),
+		"switch":  vsCodeKeywordColor.CSS(),
+		"case":    vsCodeKeywordColor.CSS(),
+		"range":   vsCodeKeywordColor.CSS(),
+		"map":     vsCodeKeywordColor.CSS(),
+		"string":  vsCodeKeywordColor.CSS(),
+		"type":    vsCodeKeywordColor.CSS(),
+		"0x":      vsCodeKeywordColor.CSS(),
+		"nil":     vsCodeVarColor.CSS(),
 		"(":       vsCodeSymbolColor.CSS(),
 		")":       vsCodeSymbolColor.CSS(),
 		"{":       vsCodeSymbolColor.CSS(),
