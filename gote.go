@@ -117,7 +117,8 @@ func main() {
 
 	/// Simple Help Info & Cursor Info
 	helpInfo := tview.NewTextView().
-		SetText(" F1 help, Ctrl-C exit, Ctrl-S save")
+		SetDynamicColors(true).
+		SetText("[yellow]Auto-Save: On[-]  F1 help, Ctrl-C exit, Ctrl-S save")
 	helpInfo.SetBackgroundColor(vsCodeBgColor)
 	position := tview.NewTextView().
 		SetDynamicColors(true).
